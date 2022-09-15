@@ -49,7 +49,7 @@ def generate_deployment_based_on_manifest(artifact_dir: str, lt_endpoint: str, l
     for deployed_app in manifest:
         if deployed_app["ApplicationName"] in app_list:
             try:
-                get_application_version(artifact_dir, lt_endpoint, lt_token, False, deployed_app["VersionKey"], app_name=deployed_app["ApplicationName"])
+                get_application_version(artifact_dir, lt_endpoint, lt_token, False, deployed_app["VersionKey"], app_name=deployed_app["ApplicationName"], app_list=app_list)
             except AppDoesNotExistError:
                 print("Application {} with version {} no longer exists in {}. The manifest no longer reflects the current state of the environment. Aborting!".format(deployed_app["ApplicationName"], deployed_app["Version"], src_env_name), flush=True)
                 sys.exit(1)
@@ -74,7 +74,7 @@ def generate_regular_deployment(artifact_dir: str, lt_endpoint: str, lt_token: s
         app_name = app_name.strip()
 
         # Get the app running version on the source environment. It will only retrieve tagged applications
-        deployed = get_running_app_version(artifact_dir, lt_endpoint, lt_token, src_env_key, app_name=app_name)
+        deployed = get_running_app_version(artifact_dir, lt_endpoint, lt_token, src_env_key, app_name=app_name, app_list=app_list)
 
         # Add it to the app data list
         app_data_list.append({'Name': app_name, 'Key': deployed["ApplicationKey"], 'Version': deployed["Version"], 'VersionKey': deployed["VersionKey"]})

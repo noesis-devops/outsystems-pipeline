@@ -26,7 +26,7 @@ from outsystems.vars.lifetime_vars import APPLICATIONS_ENDPOINT, APPLICATION_VER
 
 
 # Returns a list of applications that exist in the infrastructure.
-def get_applications(artifact_dir: str, endpoint: str, auth_token: str, extra_data: bool):
+def get_applications(artifact_dir: str, endpoint: str, auth_token: str, extra_data: bool, app_list: list):
     params = {"IncludeModules": extra_data, "IncludeEnvStatus": extra_data}
     # Sends the request
     response = send_get_request(
@@ -35,8 +35,11 @@ def get_applications(artifact_dir: str, endpoint: str, auth_token: str, extra_da
     # Process the response based on the status code returned from the server
     if status_code == APPLICATIONS_SUCCESS_CODE:
         # Stores the result
-        store_data(artifact_dir, APPLICATIONS_FILE, response["response"])
-        return response["response"]
+        result = response["response"]
+        if app_list:
+            result = [x for x in result if x["Name"] in app_list]
+        store_data(artifact_dir, APPLICATIONS_FILE, result)
+        return result
     elif status_code == APPLICATIONS_EMPTY_CODE:
         raise NoAppsAvailableError(
             "No applications available in the infrastructure. Details {}".format(response["response"]))
@@ -158,7 +161,8 @@ def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, e
                 "ApplicationName": app_tuple[0],
                 "ApplicationKey": app_tuple[1],
                 "Version": app_version_data["Version"],
-                "VersionKey": status_in_env["BaseApplicationVersionKey"]
+                "VersionKey": status_in_env["BaseApplicationVersionKey"],
+                "IsModified": status_in_env["IsModified"]
             }
             # Since these 2 fields were only introduced in a minor of OS11, we check here if they exist
             # We can't just use the version
@@ -238,14 +242,15 @@ def export_app_oap(file_path: str, endpoint: str, auth_token: str, env_key: str,
 
 # Private method to get the App name or key into a tuple (name,key).
 def _get_application_info(artifact_dir: str, api_url: str, auth_token: str, **kwargs):
+    app_list = kwargs["app_list"] if "app_list" in kwargs else None
     if "app_name" in kwargs:
         app_key = _find_application_key(
-            artifact_dir, api_url, auth_token, kwargs["app_name"])
+            artifact_dir, api_url, auth_token, kwargs["app_name"], app_list)
         app_name = kwargs["app_name"]
     elif "app_key" in kwargs:
         app_key = kwargs["app_key"]
         app_name = _find_application_name(
-            artifact_dir, api_url, auth_token, kwargs["app_key"])
+            artifact_dir, api_url, auth_token, kwargs["app_key"], app_list)
     else:
         raise InvalidParametersError(
             "You need to use either app_name=<name> or app_key=<key> as parameters to call this method.")
@@ -253,7 +258,7 @@ def _get_application_info(artifact_dir: str, api_url: str, auth_token: str, **kw
 
 
 # Private method to find an application key from name
-def _find_application_key(artifact_dir: str, api_url: str, auth_token: str, application_name: str):
+def _find_application_key(artifact_dir: str, api_url: str, auth_token: str, application_name: str, app_list: list):
     app_key = ""
     cached_results = False
     try:
@@ -263,7 +268,7 @@ def _find_application_key(artifact_dir: str, api_url: str, auth_token: str, appl
     except FileNotFoundError:
         # Query the LT API, since there's no cache
         applications = get_applications(
-            artifact_dir, api_url, auth_token, False)
+            artifact_dir, api_url, auth_token, False, app_list)
     for app in applications:
         if app["Name"] == application_name:
             app_key = app["Key"]
@@ -277,12 +282,12 @@ def _find_application_key(artifact_dir: str, api_url: str, auth_token: str, appl
     # If the cache was used, it needs to be cleared and re-fetched from the LT server
     elif app_key == "" and cached_results:
         clear_cache(artifact_dir, APPLICATIONS_FILE)
-        return _find_application_key(artifact_dir, api_url, auth_token, application_name)
+        return _find_application_key(artifact_dir, api_url, auth_token, application_name, app_list)
     return app_key
 
 
 # Private method to find an application name from key
-def _find_application_name(artifact_dir: str, api_url: str, auth_token: str, application_key: str):
+def _find_application_name(artifact_dir: str, api_url: str, auth_token: str, application_key: str, app_list: list):
     app_name = ""
     cached_results = False
     try:
@@ -292,7 +297,7 @@ def _find_application_name(artifact_dir: str, api_url: str, auth_token: str, app
     except FileNotFoundError:
         # Query the LT API, since there's no cache
         applications = get_applications(
-            artifact_dir, api_url, auth_token, False)
+            artifact_dir, api_url, auth_token, False, app_list)
     for app in applications:
         if app["Key"] == application_key:
             app_name = app["Name"]
@@ -306,5 +311,5 @@ def _find_application_name(artifact_dir: str, api_url: str, auth_token: str, app
     # If the cache was used, it needs to be cleared and re-fetched from the LT server
     elif app_name == "" and cached_results:
         clear_cache(artifact_dir, APPLICATIONS_FILE)
-        return _find_application_name(artifact_dir, api_url, auth_token, application_key)
+        return _find_application_name(artifact_dir, api_url, auth_token, application_key, app_list)
     return app_name
