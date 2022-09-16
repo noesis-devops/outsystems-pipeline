@@ -21,7 +21,7 @@ from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN
     REDEPLOY_OUTDATED_APPS, DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
     DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
 # Functions
-from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key
+from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key, get_environment_deployment_zones
 from outsystems.lifetime.lifetime_applications import get_running_app_version, get_application_version
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
     send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment
@@ -33,11 +33,11 @@ from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
 
 # ############################################################# SCRIPT ##############################################################
 # Function that will generate the app key portion of the deployment for LifeTime, based on the API level
-def generate_deploy_app_key(lt_api_version: int, app_version_key: str, deploy_zone=""):
+def generate_deploy_app_key(lt_api_version: int, app_version_key: str, deploy_zone_key: str):
     if lt_api_version == 1:  # LT for OS version < 11
         return app_version_key
     elif lt_api_version == 2:  # LT for OS v11
-        return {"ApplicationVersionKey": app_version_key, "DeploymentZoneKey": deploy_zone}
+        return {"ApplicationVersionKey": app_version_key, "DeploymentZoneKey": deploy_zone_key}
     else:
         raise NotImplementedError("Please make sure the API version is compatible with the module.")
 
@@ -90,8 +90,19 @@ def generate_regular_deployment(artifact_dir: str, lt_endpoint: str, lt_token: s
 
 
 # Function to check if target environment already has the application versions to be deployed
-def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str, lt_token: str, env_key: str, env_name: str, app_data_list: list):
+def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str, lt_token: str, env_key: str, env_name: str, app_data_list: list, dep_zone: str):
     app_keys = []  # will contain the application keys to create the deployment plan
+    deploy_zone_key = ""  # will contain the deployment zone key to use in the deployment plan
+
+    if dep_zone:
+        # get target deployment zone based on the name provided as input
+        deploy_zones = get_environment_deployment_zones(artifact_dir, lt_endpoint, lt_token, env_key=env_key)
+        target_deploy_zone = next(filter(lambda x: x["Name"] == dep_zone, deploy_zones), None)
+        if target_deploy_zone:
+            deploy_zone_key = target_deploy_zone["Key"]
+        else:
+            print("Deployment zone with name {} not found in {} environment.".format(dep_zone, env_name), flush=True)
+
     for app in app_data_list:
         # get the status of the app in the target env, to check if they were deployed
         try:
@@ -111,17 +122,23 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
                             print("Skipping application {} with version {}, since it's already deployed in {} environment.\nReason: VersionTag is equal.".format(app["Name"], app["Version"], env_name), flush=True)
                         else:
                             # Generated app_keys for deployment plan based on the running version
-                            app_keys.append(generate_deploy_app_key(lt_api_version, app["VersionKey"]))
-                            print("Adding application {} with version {}, to be deployed in {} environment.".format(app["Name"], app["Version"], env_name), flush=True)
+                            app_keys.append(generate_deploy_app_key(lt_api_version, app["VersionKey"], deploy_zone_key))
+                            if deploy_zone_key:
+                                print("Adding application {} with version {}, to be deployed in {} environment using {} deployment zone.".format(app["Name"], app["Version"], env_name, dep_zone), flush=True)
+                            else:
+                                print("Adding application {} with version {}, to be deployed in {} environment.".format(app["Name"], app["Version"], env_name), flush=True)
                     else:
                         print("Skipping application {} with version {}, since it's already deployed in {} environment.\nReason: VersionKey is equal.".format(app["Name"], app["Version"], env_name), flush=True)
         except AppDoesNotExistError:
-            app_keys.append(generate_deploy_app_key(lt_api_version, app["VersionKey"]))
-            print("App {} with version {} does not exist in {} environment. Ignoring check and deploy it.".format(app["Name"], app["Version"], dest_env), flush=True)
+            app_keys.append(generate_deploy_app_key(lt_api_version, app["VersionKey"], deploy_zone_key))
+            if deploy_zone_key:
+                print("App {} with version {} does not exist in {} environment. Ignoring check and deploying it using {} deployment zone.".format(app["Name"], app["Version"], env_name, dep_zone), flush=True)
+            else:
+                print("App {} with version {} does not exist in {} environment. Ignoring check and deploying it.".format(app["Name"], app["Version"], env_name), flush=True)
     return app_keys
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest: list, dep_note: str):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest: list, dep_note: str, dep_zone: str):
 
     app_data_list = []  # will contain the applications to deploy details from LT
     to_deploy_app_keys = []  # will contain the app keys for the apps tagged
@@ -142,7 +159,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     else:
         app_data_list = generate_regular_deployment(artifact_dir, lt_endpoint, lt_token, src_env_key, apps)
 
-    to_deploy_app_keys = check_if_can_deploy(artifact_dir, lt_endpoint, lt_api_version, lt_token, dest_env_key, dest_env, app_data_list)
+    to_deploy_app_keys = check_if_can_deploy(artifact_dir, lt_endpoint, lt_api_version, lt_token, dest_env_key, dest_env, app_data_list, dep_zone)
 
     # Check if there are apps to be deployed
     if len(to_deploy_app_keys) == 0:
@@ -257,6 +274,8 @@ if __name__ == "__main__":
                         help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-f", "--manifest_file", type=str,
                         help="(optional) Manifest file path, used to promote the same application versions throughout the pipeline execution.")
+    parser.add_argument("-z", "--deployment_zone", type=str,
+                        help="(Optional) Name of the deployment zone in destination environment where you want to deploy the apps.")
 
     args = parser.parse_args()
 
@@ -293,6 +312,8 @@ if __name__ == "__main__":
         manifest_file = None
     # Parse Deployment Message
     dep_note = args.deploy_msg
+    # Parse Deployment Zone
+    dep_zone = args.deployment_zone.strip()
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, manifest_file, dep_note)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, manifest_file, dep_note, dep_zone)
