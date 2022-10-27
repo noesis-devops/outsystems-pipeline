@@ -333,4 +333,4 @@ if __name__ == "__main__":
         target_env = args.target_env
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, target_env_hostname, installation_dir, network_user, network_pass, target_env, apps, inc_pattern, exc_pattern, include_all_refs, trigger_manifest)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, target_env_hostname, installation_dir, network_user, network_pass, target_env, apps, inc_pattern, exc_pattern, include_all_refs, trigger_manifest)  # type: ignore
