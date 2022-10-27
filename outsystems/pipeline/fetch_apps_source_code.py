@@ -27,6 +27,9 @@ from outsystems.lifetime.lifetime_applications import _get_application_info
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.lifetime.lifetime_environments import get_environment_key, _find_environment_url
 from outsystems.lifetime.lifetime_modules import get_modules
+from outsystems.file_helpers.file import load_data
+# Exceptions
+from outsystems.exceptions.manifest_does_not_exist import ManifestDoesNotExistError
 
 
 # ############################################################# SCRIPT ##############################################################
@@ -155,12 +158,12 @@ def include_references(local_dir: str, csproj_dir: str):
             ref.append(ref_private)
 
             # Append new element to ItemGroup element
-            itemgroup_elem.append(ref)
+            itemgroup_elem.append(ref)  # type: ignore
 
     tree.write(csproj_file)
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, target_env_hostname: str, installation_dir: str, network_user: str, network_pass: str, target_env: str, apps: list, inc_pattern: str, exc_pattern: str, include_all_refs: bool):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, target_env_hostname: str, installation_dir: str, network_user: str, network_pass: str, target_env: str, apps: list, inc_pattern: str, exc_pattern: str, include_all_refs: bool, trigger_manifest: dict):
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -170,8 +173,14 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Tuple with (AppName, AppKey): app_tuple[0] = AppName; app_tuple[1] = AppKey
     app_list = []
-    for app in apps:
-        app_list.append(_get_application_info(artifact_dir, lt_endpoint, lt_token, app_name=app))
+
+    if trigger_manifest:
+        for app in trigger_manifest["ApplicationVersions"]:
+            if not app["IsTestApplication"]:
+                app_list.append((app["ApplicationName"], app["ApplicationKey"]))
+    else:
+        for app in apps:
+            app_list.append(_get_application_info(artifact_dir, lt_endpoint, lt_token, app_name=app))
 
     # Get factory modules info
     all_modules = get_modules(artifact_dir, lt_endpoint, lt_token, True)
@@ -250,7 +259,7 @@ if __name__ == "__main__":
                         help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
     parser.add_argument("-t", "--target_env", type=str, required=True,
                         help="Name, as displayed in LifeTime, of the target environment where you want to fetch the apps.")
-    parser.add_argument("-l", "--app_list", type=str, required=True,
+    parser.add_argument("-l", "--app_list", type=str,
                         help="Comma separated list of apps you want to fetch. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-th", "--target_env_hostname", type=str,
                         help=r'(optional) Target environemnt hostname. Example: "<environemnt_hostname>"')
@@ -266,6 +275,8 @@ if __name__ == "__main__":
                         help="(optional) Exclude pattern for module scope")
     parser.add_argument("-ref", "--include_all_refs", action='store_true',
                         help="Flag that indicates if all references need to be added to the csproj file.")
+    parser.add_argument("-f", "--manifest_file", type=str,
+                        help="(Optional) Trigger manifest file path.")
 
     args = parser.parse_args()
 
@@ -288,11 +299,6 @@ if __name__ == "__main__":
     lt_version = args.lt_api_version
     # Parse the LT Token
     lt_token = args.lt_token
-    # Parse Target Environment
-    target_env = args.target_env
-    # Parse App list
-    _apps = args.app_list
-    apps = _apps.split(',')
     # Parse Hostname dir
     target_env_hostname = args.target_env_hostname
     # Parse Installation dir
@@ -307,6 +313,24 @@ if __name__ == "__main__":
     exc_pattern = args.exc_pattern
     # Parse Include All References
     include_all_refs = args.include_all_refs
+    # Validate Manifest is being passed
+    if not args.manifest_file and not args.app_list:
+        raise ManifestDoesNotExistError("Application list was not provided (either by manifest or by app list). Aborting!")
+
+    if args.manifest_file:
+        # Parse Trigger Manifest artifact
+        trigger_manifest = load_data("", args.manifest_file)
+        # Parse Env Label
+        for env in trigger_manifest["EnvironmentDefinitions"]:
+            if env["EnvironmentLabel"] == args.target_env:
+                target_env = env["EnvironmentName"]
+    else:
+        trigger_manifest = None
+        # Parse App list
+        _apps = args.app_list
+        apps = _apps.split(',')
+        # Parse Target Environment
+        target_env = args.target_env
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, target_env_hostname, installation_dir, network_user, network_pass, target_env, apps, inc_pattern, exc_pattern, include_all_refs)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, target_env_hostname, installation_dir, network_user, network_pass, target_env, apps, inc_pattern, exc_pattern, include_all_refs, trigger_manifest)
