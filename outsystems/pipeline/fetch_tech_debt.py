@@ -80,4 +80,4 @@ if __name__ == "__main__":
         manifest_file = None
 
     # Calls the main script
-    main(artifact_dir, ad_api_host, activation_code, api_key, manifest_file)
+    main(artifact_dir, ad_api_host, activation_code, api_key, manifest_file)  # type: ignore

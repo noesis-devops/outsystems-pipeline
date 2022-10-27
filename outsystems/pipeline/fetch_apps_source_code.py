@@ -97,7 +97,7 @@ def csproj_files(module_name: str, local_dir: str):
                 csproj = line.split(",")[1].strip().strip('\"')
 
                 # Ignore if module's default csproj
-                if(csproj == "{}.csproj".format(module_name)):
+                if (csproj == "{}.csproj".format(module_name)):
                     continue
 
                 csprojs.append(csproj)
@@ -127,7 +127,7 @@ def include_references(local_dir: str, csproj_dir: str):
             # Validate if dll already exists in the csproj
             dll_exists = (len(tree.findall('./{val}ItemGroup/{val}Reference/[@Include="{dll}"]'.format(val='{' + MS_BUILD_NAMESPACE + '}', dll=dll_name))) > 0)
 
-            # Continue if module's default csproj 
+            # Continue if module's default csproj
             # Continue if dll already exists in csproj
             # Continue if dll exists in blacklist
             if dll_name == os.path.splitext(os.path.basename(csproj_file))[0] or dll_exists or dll_name in ASSEMBLY_BLACKLIST:

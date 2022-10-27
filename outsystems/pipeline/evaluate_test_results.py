@@ -72,7 +72,7 @@ if __name__ == '__main__':
     filename = os.path.join(ARTIFACT_FOLDER, JUNIT_TEST_RESULTS_FILE)
     try:
         with open(filename, 'wb') as output:
-            runner = xmlrunner.XMLTestRunner(output=output, failfast=False, buffer=False)
+            runner = xmlrunner.XMLTestRunner(output=output, failfast=False, buffer=False)  # type: ignore
             unittest.main(testRunner=runner)
     except UnboundLocalError:
         sys.exit(0)
