@@ -11,9 +11,11 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Trigger Manifest Artifact**
- * New function to create and execute a deployment plan based on the app versions on the manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
- * New function to set configuration item values on a target environment based on the values found on the manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
+**Fetch Application Source Code**
+ * New function to extract the source code of LifeTime applications.
+ 
+=========
+
 
 **LifeTime Deployment Operations**
  * New function to resume the execution of a deployment plan on a target environment where 2-stage deployments are enabled.

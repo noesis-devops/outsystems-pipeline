@@ -8,6 +8,16 @@
 [//]: # (BREAKING CHANGES)
 
 
+## November 7th, 2022
+
+### Fetch Application Source Code for SAST Analysis
+
+Added new function (fetch_apps_source_code) to retrieve the source code of a set of LifeTime applications from an environment platform server. The function can also include in the project files all the assembly references found in the 'bin' directory of a given module.
+
+**NOTE:** This function requires network connectivity to the target environment platform server.
+
+=======
+
 ## July 4th, 2022
 
 ### LifeTime Deployment Operations
@@ -28,6 +38,7 @@ Added new functions to leverage the trigger manifest artifact provided since ver
 
 * `deploy_tags_to_target_env_with_manifest` - Creates and executes a deployment plan based on the application versions defined in the trigger manifest submitted as input parameter by the Trigger Pipeline plugin.
 * `apply_configuration_values_to_target_env` - Sets configuration items values in a target environment based on the values found on the trigger manifest artifact.
+
 
 ## December 29th, 2021
 
