@@ -317,9 +317,11 @@ if __name__ == "__main__":
     if not args.manifest_file and not args.app_list:
         raise ManifestDoesNotExistError("Application list was not provided (either by manifest or by app list). Aborting!")
 
+    # Use Trigger Manifest if available
     if args.manifest_file:
         # Parse Trigger Manifest artifact
         trigger_manifest = load_data("", args.manifest_file)
+        apps = None
         # Parse Env Label
         for env in trigger_manifest["EnvironmentDefinitions"]:
             if env["EnvironmentLabel"] == args.target_env:
