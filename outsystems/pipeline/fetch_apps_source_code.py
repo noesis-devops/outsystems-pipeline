@@ -326,6 +326,8 @@ if __name__ == "__main__":
         for env in trigger_manifest["EnvironmentDefinitions"]:
             if env["EnvironmentLabel"] == args.target_env:
                 target_env = env["EnvironmentName"]
+            else:
+                target_env = args.target_env
     else:
         trigger_manifest = None
         # Parse App list
