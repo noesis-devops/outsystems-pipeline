@@ -6,7 +6,8 @@ from outsystems.exceptions.environment_not_found import EnvironmentNotFoundError
 # Variables
 from outsystems.vars.manifest_vars import MANIFEST_ENVIRONMENT_KEY, MANIFEST_ENVIRONMENT_NAME, MANIFEST_ENVIRONMENT_LABEL, \
     MANIFEST_ENVIRONMENT_DEFINITIONS, MANIFEST_CONFIGURATION_ITEMS, MANIFEST_CONFIG_ITEM_VALUES, MANIFEST_MODULE_KEY, MANIFEST_MODULE_NAME, \
-    MANIFEST_CONFIG_ITEM_KEY, MANIFEST_CONFIG_ITEM_NAME, MANIFEST_CONFIG_ITEM_TYPE, MANIFEST_CONFIG_ITEM_TARGET_VALUE, MANIFEST_DEPLOYMENT_NOTES
+    MANIFEST_CONFIG_ITEM_KEY, MANIFEST_CONFIG_ITEM_NAME, MANIFEST_CONFIG_ITEM_TYPE, MANIFEST_CONFIG_ITEM_TARGET_VALUE, \
+    MANIFEST_CONFIG_ITEM_STEP, MANIFEST_DEPLOYMENT_NOTES
 from outsystems.vars.lifetime_vars import DEPLOYMENT_MESSAGE
 
 
@@ -21,22 +22,24 @@ def get_environment_details(manifest: dict, environment_label: str):
 
 
 # Returns the configuration items for the target environment key
-def get_configuration_items_for_environment(manifest: dict, target_env_key: str):
+def get_configuration_items_for_environment(manifest: dict, target_env_key: str, config_step: str):
     config_items = []
     if MANIFEST_CONFIGURATION_ITEMS in manifest:
         for cfg_item in manifest[MANIFEST_CONFIGURATION_ITEMS]:
-            target_value = next(filter(lambda x: x[MANIFEST_ENVIRONMENT_KEY] == target_env_key, cfg_item[MANIFEST_CONFIG_ITEM_VALUES]), None)
-            if target_value:
-                # Add it to the config items list
-                config_items.append({
-                    MANIFEST_MODULE_KEY: cfg_item[MANIFEST_MODULE_KEY],
-                    MANIFEST_MODULE_NAME: cfg_item[MANIFEST_MODULE_NAME],
-                    MANIFEST_CONFIG_ITEM_KEY: cfg_item[MANIFEST_CONFIG_ITEM_KEY],
-                    MANIFEST_CONFIG_ITEM_NAME: cfg_item[MANIFEST_CONFIG_ITEM_NAME],
-                    MANIFEST_CONFIG_ITEM_TYPE: cfg_item[MANIFEST_CONFIG_ITEM_TYPE],
-                    MANIFEST_CONFIG_ITEM_TARGET_VALUE: target_value[MANIFEST_CONFIG_ITEM_TARGET_VALUE],
-                    MANIFEST_ENVIRONMENT_NAME: target_value[MANIFEST_ENVIRONMENT_NAME]
-                })
+            # Check if configuration step matches the one provided
+            if MANIFEST_CONFIG_ITEM_STEP not in cfg_item or cfg_item[MANIFEST_CONFIG_ITEM_STEP] == config_step:
+                target_value = next(filter(lambda x: x[MANIFEST_ENVIRONMENT_KEY] == target_env_key, cfg_item[MANIFEST_CONFIG_ITEM_VALUES]), None)
+                if target_value:
+                    # Add it to the config items list
+                    config_items.append({
+                        MANIFEST_MODULE_KEY: cfg_item[MANIFEST_MODULE_KEY],
+                        MANIFEST_MODULE_NAME: cfg_item[MANIFEST_MODULE_NAME],
+                        MANIFEST_CONFIG_ITEM_KEY: cfg_item[MANIFEST_CONFIG_ITEM_KEY],
+                        MANIFEST_CONFIG_ITEM_NAME: cfg_item[MANIFEST_CONFIG_ITEM_NAME],
+                        MANIFEST_CONFIG_ITEM_TYPE: cfg_item[MANIFEST_CONFIG_ITEM_TYPE],
+                        MANIFEST_CONFIG_ITEM_TARGET_VALUE: target_value[MANIFEST_CONFIG_ITEM_TARGET_VALUE],
+                        MANIFEST_ENVIRONMENT_NAME: target_value[MANIFEST_ENVIRONMENT_NAME]
+                    })
 
     return config_items
 

@@ -15,7 +15,7 @@ else:  # Else just add the project dir
 # Custom Modules
 # Variables
 from outsystems.vars.manifest_vars import MANIFEST_CONFIG_ITEM_TYPE, MANIFEST_MODULE_KEY, MANIFEST_CONFIG_ITEM_KEY, \
-    MANIFEST_CONFIG_ITEM_TARGET_VALUE, MANIFEST_CONFIG_ITEM_NAME
+    MANIFEST_CONFIG_ITEM_TARGET_VALUE, MANIFEST_CONFIG_ITEM_NAME, MANIFEST_CONFIG_ITEM_STEP_PRE, MANIFEST_CONFIG_ITEM_STEP_POST
 from outsystems.vars.properties_vars import PROPERTY_TYPE_SITE_PROPERTY, PROPERTY_TYPE_REST_ENDPOINT, PROPERTY_TYPE_SOAP_ENDPOINT, \
     PROPERTY_TYPE_TIMER_SCHEDULE
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO
@@ -31,19 +31,19 @@ from outsystems.exceptions.manifest_does_not_exist import ManifestDoesNotExistEr
 
 
 # Function to apply configuration values to a target environment
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_token: str, target_env_label: str, trigger_manifest: dict):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_token: str, target_env_label: str, config_step: str, trigger_manifest: dict):
 
     # Tuple with (EnvName, EnvKey): target_env_tuple[0] = EnvName; target_env_tuple[1] = EnvKey
     target_env_tuple = get_environment_details(trigger_manifest, target_env_label)
 
-    # Get configuration items defined in the manifest for target environment
-    config_items = get_configuration_items_for_environment(trigger_manifest, target_env_tuple[1])
+    # Get configuration items defined in the manifest for target environment and step
+    config_items = get_configuration_items_for_environment(trigger_manifest, target_env_tuple[1], config_step)
 
-    # Check if there are any configuration item values to apply for target environment
+    # Check if there are any configuration item values to apply for target environment and step
     if len(config_items) == 0:
-        print("No configuration item values were found in the manifest for {} (Label: {}).".format(target_env_tuple[0], target_env_label), flush=True)
+        print("No {}-deployment configuration item values were found in the manifest for {} (Label: {}).".format(config_step, target_env_tuple[0], target_env_label), flush=True)
     else:
-        print("Applying new values to configuration items in {} (Label: {})...".format(target_env_tuple[0], target_env_label), flush=True)
+        print("Applying new values to {}-deployment configuration items in {} (Label: {})...".format(config_step, target_env_tuple[0], target_env_label), flush=True)
 
     # Apply target value for each configuration item according to its type
     for cfg_item in config_items:
@@ -87,6 +87,8 @@ if __name__ == "__main__":
                         help="Service account token for Properties API calls.")
     parser.add_argument("-e", "--target_env_label", type=str, required=True,
                         help="Label, as configured in the manifest, of the target environment where the configuration values will be applied.")
+    parser.add_argument("-s", "--config_step", type=str, default=MANIFEST_CONFIG_ITEM_STEP_POST, choices=[MANIFEST_CONFIG_ITEM_STEP_PRE, MANIFEST_CONFIG_ITEM_STEP_POST],
+                        help="Configuration step used to retrieve from the manifest which configuration items to apply (pre or post-deployment). Default: \"post\"")
     parser.add_argument("-m", "--trigger_manifest", type=str,
                         help="Manifest artifact (in JSON format) received when the pipeline is triggered. Contains required data used throughout the pipeline execution.")
     parser.add_argument("-f", "--manifest_file", type=str,
@@ -110,6 +112,8 @@ if __name__ == "__main__":
     lt_token = args.lt_token
     # Parse Destination Environment
     target_env_label = args.target_env_label
+    # Parse Configuration Step
+    config_step = args.config_step
 
     # Validate Manifest is being passed either as JSON or as file
     if not args.trigger_manifest and not args.manifest_file:
@@ -122,4 +126,4 @@ if __name__ == "__main__":
         trigger_manifest = json.loads(args.trigger_manifest)
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_token, target_env_label, trigger_manifest)
+    main(artifact_dir, lt_http_proto, lt_url, lt_token, target_env_label, config_step, trigger_manifest)
