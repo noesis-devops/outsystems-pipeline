@@ -3,6 +3,7 @@ import requests
 import json
 
 # Custom Modules
+from outsystems.file_helpers.file import check_file
 # Exceptions
 from outsystems.exceptions.invalid_json_response import InvalidJsonResponseError
 
@@ -50,6 +51,29 @@ def send_post_request(lt_api: str, token: str, api_endpoint: str, payload: str):
             response_obj["response"] = json.loads('"{}"'.format(response.text))
     return response_obj
 
+# Sends a POST request to LT, with binary content.
+def send_binary_post_request(lt_api: str, token: str, api_endpoint: str, dest_env:str, lt_endpont: str, binary_path: str):
+    # Auth token + content type octet-stream
+    headers = {'content-type': 'application/octet-stream',
+               'authorization': 'Bearer ' + token}
+    # Format the request URL to include the api endpoint
+    request_string = "{}/{}/{}/{}".format(lt_api, api_endpoint, dest_env, lt_endpont)
+    
+    if check_file("", binary_path):
+        with open(binary_path, 'rb') as f:
+            data = f.read()
+
+    response = requests.post(
+        request_string, data=data, headers=headers)
+    response_obj = {"http_status": response.status_code, "response": {}}
+    # Since LT API POST requests do not reply with native JSON, we have to make it ourselves
+    if len(response.text) > 0:
+        try:
+            response_obj["response"] = response.json()
+        except:
+            # Workaround for POST /deployments/ since the response is not JSON, just text
+            response_obj["response"] = json.loads('"{}"'.format(response.text))
+    return response_obj
 
 # Sends a DELETE request to LT
 def send_delete_request(lt_api: str, token: str, api_endpoint: str):
