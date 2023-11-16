@@ -55,7 +55,7 @@ pipeline {
     CICDProbeEnvironmentURL = 'https://regression-env.acmecorp.com/'
     BDDFrameworkEnvironmentURL = 'https://regression-env.acmecorp.com/'
     // OutSystems PyPI package version
-    OSPackageVersion = '0.6.0'
+    OSPackageVersion = '0.8.0'
   }
   stages {
     stage('Get and Deploy Latest Tags') {
