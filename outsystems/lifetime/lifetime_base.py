@@ -35,6 +35,21 @@ def send_get_request(lt_api: str, token: str, api_endpoint: str, url_params: dic
     return response_obj
 
 
+# WORKAROUND - LT API retrives only the URL and not a JSON object
+def send_link_request(lt_api: str, token: str, api_endpoint: str, url_params: dict):
+    # Auth token + content type json
+    headers = {'content-type': 'application/json',
+               'authorization': 'Bearer ' + token}
+    # Format the request URL to include the api endpoint
+    request_string = "{}/{}".format(lt_api, api_endpoint)
+    response = requests.get(request_string, params=url_params, headers=headers, verify=get_configuration_value("LIFETIME_SSL_CERT_VERIFY", LIFETIME_SSL_CERT_VERIFY))
+    response_obj = {"http_status": response.status_code, "response": {}}
+    if len(response.text) > 0:
+        response_obj["response"] = response.text
+
+    return response_obj
+
+
 # Sends a POST request to LT, with a payload. The json part is ignored
 def send_post_request(lt_api: str, token: str, api_endpoint: str, payload: str):
     # Auth token + content type json

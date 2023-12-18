@@ -12,7 +12,7 @@ from outsystems.exceptions.not_enough_permissions import NotEnoughPermissionsErr
 from outsystems.exceptions.environment_not_found import EnvironmentNotFoundError
 from outsystems.exceptions.app_version_error import AppVersionsError
 # Functions
-from outsystems.file_helpers.file import store_data, load_data, clear_cache, download_oap
+from outsystems.file_helpers.file import store_data, load_data, clear_cache, download_package
 from outsystems.lifetime.lifetime_base import send_get_request, send_post_request
 # Variables
 from outsystems.vars.file_vars import APPLICATION_FOLDER, APPLICATIONS_FILE, APPLICATION_FILE, APPLICATION_VERSIONS_FILE, APPLICATION_VERSION_FILE
@@ -212,7 +212,7 @@ def export_app_oap(file_path: str, endpoint: str, auth_token: str, env_key: str,
         # Stores the result
         url_string = response["response"]
         url_string = url_string["url"]
-        download_oap(file_path, auth_token, url_string)
+        download_package(file_path, auth_token, url_string)
         return
     elif status_code == APPLICATION_VERSION_NO_PERMISSION_CODE:
         raise NotEnoughPermissionsError(
