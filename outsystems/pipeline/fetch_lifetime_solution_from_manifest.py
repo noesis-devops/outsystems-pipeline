@@ -17,7 +17,7 @@ else:  # Else just add the project dir
 # Variables
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, SOLUTIONS_OSP_FILE, SOLUTIONS_FOLDER
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
-from outsystems.vars.manifest_vars import MANIFEST_APPLICATION_VERSIONS, MANIFEST_APPLICATION_KEY, MANIFEST_FLAG_IS_TEST_APPLICATION
+from outsystems.vars.manifest_vars import MANIFEST_APPLICATION_VERSIONS, MANIFEST_APPLICATION_KEY, MANIFEST_FLAG_IS_TEST_APPLICATION, MANIFEST_APPLICATION_NAME
 from outsystems.vars.pipeline_vars import SOLUTION_TIMEOUT_IN_SECS, SOLUTION_SLEEP_PERIOD_IN_SECS, SOLUTION_CREATED_STATUS, \
     SOLUTION_READY_STATUS, SOLUTION_GATHERING_DEPENDENCIES_STATUS, SOLUTION_GETTING_BINARIES_STATUS, SOLUTION_GENERATING_META_MODEL_STATUS, \
     SOLUTION_GENERATING_SOLUTION_STATUS, SOLUTION_COMPLETED_STATUS, SOLUTION_ABORTED_STATUS
@@ -68,6 +68,19 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     IN_PROGESS_STATUS = [SOLUTION_CREATED_STATUS, SOLUTION_READY_STATUS, SOLUTION_GATHERING_DEPENDENCIES_STATUS,
                          SOLUTION_GETTING_BINARIES_STATUS, SOLUTION_GENERATING_META_MODEL_STATUS,
                          SOLUTION_GENERATING_SOLUTION_STATUS]
+
+    # Retrieve the app names from the manifest content
+    application_names = [app[MANIFEST_APPLICATION_NAME] for app in trigger_manifest.get(MANIFEST_APPLICATION_VERSIONS, []) if include_test_apps or not app.get(MANIFEST_FLAG_IS_TEST_APPLICATION)]
+
+    # Print information about the solution package
+    print("A solution package will be created from '{}', containing the latest version of each module from the following applications:".format(env_tuple[0]), flush=True)
+
+    for app_name in application_names:
+        print(" - {} ".format(app_name), flush=True)
+
+    # Print additional information if include_refs is True
+    if include_refs:
+        print("Producer modules will also be included in the solution package", flush=True)
 
     print("Start creation of '{}' package:".format(solution_name), flush=True)
     while wait_counter < get_configuration_value("SOLUTION_TIMEOUT_IN_SECS", SOLUTION_TIMEOUT_IN_SECS):
