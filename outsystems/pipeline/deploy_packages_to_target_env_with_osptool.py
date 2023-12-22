@@ -23,7 +23,7 @@ from outsystems.exceptions.osptool_error import OSPToolDeploymentError
 
 
 # ############################################################# SCRIPT ##############################################################
-def main(artifact_dir: str, dest_env: str, package_path: str, osp_tool_path: str, credentials: str):
+def main(artifact_dir: str, dest_env: str, package_path: str, catalogmappings_path: str, osp_tool_path: str, credentials: str):
 
     # Get solution file name from path
     solution_file = os.path.split(package_path)[1]
@@ -31,7 +31,7 @@ def main(artifact_dir: str, dest_env: str, package_path: str, osp_tool_path: str
     print("Starting deployment of '{}' into '{}' environment...".format(solution_file, dest_env), flush=True)
 
     # Call OSP Tool
-    return_code, execution_log = call_osptool(osp_tool_path, package_path, dest_env, credentials)
+    return_code, execution_log = call_osptool(osp_tool_path, package_path, dest_env, credentials, catalogmappings_path)
 
     # Split the output into lines
     execution_log = execution_log.splitlines()
@@ -41,17 +41,19 @@ def main(artifact_dir: str, dest_env: str, package_path: str, osp_tool_path: str
     filename = os.path.join(SOLUTIONS_FOLDER, filename)
     store_data(artifact_dir, filename, execution_log)
 
-    if return_code != 0:
-        error_validation_list = ['Incompatible Dependency', 'Execution Plan Abort']
+    error_validation_list = ['Incompatible Dependency', 'Execution Plan Abort', 'Outdated Consumer', 'Missing Configuration']
 
-        # Validate the presence of each error validation
-        for error_validation in error_validation_list:
-            existing_error_list = [s for s in execution_log if error_validation in s]
-            if existing_error_list:
-                print(f'\nFound "{error_validation}" validation:')
-                for error in existing_error_list:
-                    print(f' - {error}')
+    # Validate the presence of each error validation
+    deploy_error_flag = False
+    for error_validation in error_validation_list:
+        existing_error_list = [s for s in execution_log if error_validation in s]
+        if existing_error_list:
+            deploy_error_flag = True
+            print(f'\nFound "{error_validation}" validation:')
+            for error in existing_error_list:
+                print(f' - {error}')
 
+    if deploy_error_flag:
         # Exit script with error
         raise OSPToolDeploymentError(
             "OSP Tool Deployment finished with errors. Please check the logs for further details.")
@@ -66,6 +68,8 @@ if __name__ == "__main__":
                         help="Name, as displayed in LifeTime, of the destination environment where you want to deploy the apps. (if in Airgap mode should be the hostname of the destination environment where you want to deploy the apps)")
     parser.add_argument("-p", "--package_path", type=str, required=True,
                         help="Package file path")
+    parser.add_argument("-c", "--catalogmappings_path", type=str,
+                        help="(Optional) Catalog mappings file path")
     parser.add_argument("-o", "--osp_tool_path", type=str, required=True,
                         help="OSP Tool file path")
     parser.add_argument("-user", "--osptool_user", type=str, required=True,
@@ -82,8 +86,10 @@ if __name__ == "__main__":
         load_configuration_file(args.config_file)
     # Parse the artifact directory
     artifact_dir = args.artifacts
-    # Parse the package directory
+    # Parse the package path
     package_path = args.package_path
+    # Parse the Catalog Mapping path
+    catalogmappings_path = args.catalogmappings_path
     # Parse Destination Environment
     dest_env = args.destination_env
     # Parse OSP Tool path
@@ -92,4 +98,4 @@ if __name__ == "__main__":
     credentials = args.osptool_user + " " + args.osptool_pwd
 
     # Calls the main script
-    main(artifact_dir, dest_env, package_path, osp_tool_path, credentials)
+    main(artifact_dir, dest_env, package_path, catalogmappings_path, osp_tool_path, credentials)

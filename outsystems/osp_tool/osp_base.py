@@ -43,9 +43,14 @@ def run_command(command, live_output_callback=None, timeout=None):
     return return_code, execution_log
 
 
-def call_osptool(osp_tool_path: str, package_file_path: str, env_hostname: str, credentials: str):
-    # Construct the command using a formatted string
-    command = "{} {} {} {}".format(osp_tool_path, package_file_path, env_hostname, credentials)
+def call_osptool(osp_tool_path: str, package_file_path: str, env_hostname: str, credentials: str, catalogmappings_path: str):
+
+    if catalogmappings_path:
+        # Construct the command using a formatted string
+        command = '"{}" "{}" "{}" {} /catalogmappings "{}"'.format(osp_tool_path, package_file_path, env_hostname, credentials, catalogmappings_path)
+    else:
+        # Construct the command using a formatted string
+        command = '"{}" "{}" "{}" {}'.format(osp_tool_path, package_file_path, env_hostname, credentials)
 
     # Define a callback function for live output
     def live_output_callback(output_line):
