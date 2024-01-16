@@ -1,13 +1,7 @@
 name: Python package
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'outsystems/**'
-      - 'build/**'
-      - 'setup.py'
+  workflow_dispatch:
 
 
 jobs:
