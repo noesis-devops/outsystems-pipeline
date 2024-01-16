@@ -8,7 +8,7 @@ on:
       - 'outsystems/**'
       - 'build/**'
       - 'setup.py'
-  pull_request: []
+
 
 jobs:
   test:
