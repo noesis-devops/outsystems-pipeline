@@ -2,6 +2,9 @@ name: Python package
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - master
 
 
 jobs:
@@ -48,8 +51,21 @@ jobs:
       run: |
         python build/version_bumper.py --minor
         python setup.py sdist
-    - name: Store the distribution packages
-      uses: actions/upload-artifact@v2
-      with:
-        name: python-package-distributions
-        path: dist/
+    - name: Create GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: >-
+        gh release create
+        '${{ github.ref_name }}'
+        --repo '${{ github.repository }}'
+        --notes ""
+    - name: Upload artifact signatures to GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      # Upload to GitHub Release using the `gh` CLI.
+      # `dist/` contains the built packages, and the
+      # sigstore-produced signatures and certificates.
+      run: >-
+        gh release upload
+        '${{ github.ref_name }}' dist/**
+        --repo '${{ github.repository }}'
