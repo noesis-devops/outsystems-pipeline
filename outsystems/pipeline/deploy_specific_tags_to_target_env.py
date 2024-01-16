@@ -23,9 +23,9 @@ from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN
     DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
 # Functions
 from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key
-from outsystems.lifetime.lifetime_applications import get_running_app_version, get_application_version, get_app_version_info, get_application_versions
+from outsystems.lifetime.lifetime_applications import get_application_version, get_app_version_info, get_application_versions
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
-    send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment
+    send_deployment, delete_deployment, start_deployment, continue_deployment#, get_running_deployment
 from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.vars.vars_base import get_configuration_value, load_configuration_file
@@ -105,7 +105,6 @@ def generate_specific_tags_deployment(artifact_dir: str, lt_endpoint: str, lt_to
             if app_version["Version"] == app["app_version"]:
                 found = True
                 app_data_list.append({'Name': app_name, 'Key': app_version["ApplicationKey"], 'Version': app_version["Version"], 'VersionKey': app_version["Key"]})
-        
         if not found:
             print("The application {} with version {} does not exist in the {} environment. Aborting!".format(app_name, app["app_version"], src_env_key), flush=True)
             sys.exit(1)
@@ -219,8 +218,8 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         store_data(artifact_dir, CONFLICTS_FILE, dep_details["ApplicationConflicts"])
         print("Deployment plan {} has conflicts and will be aborted. Check {} artifact for more details.".format(dep_plan_key, CONFLICTS_FILE), flush=True)
         # Abort previously created deployment plan to target environment
-        #delete_deployment(lt_endpoint, lt_token, dep_plan_key)
-        #print("Deployment plan {} was deleted successfully.".format(dep_plan_key), flush=True)
+        # delete_deployment(lt_endpoint, lt_token, dep_plan_key)
+        # print("Deployment plan {} was deleted successfully.".format(dep_plan_key), flush=True)
         sys.exit(1)
 
     # Check if outdated consumer applications (outside of deployment plan) should be redeployed and start the deployment plan execution
@@ -322,7 +321,7 @@ if __name__ == "__main__":
     dest_env = args.destination_env
     # Parse App list
     #_apps = args.app_list
-    #apps = _apps.split(',')
+    # apps = _apps.split(',')
     apps = json.loads(args.app_list)
     # Parse Manifest file if it exists
     if args.manifest_file:
