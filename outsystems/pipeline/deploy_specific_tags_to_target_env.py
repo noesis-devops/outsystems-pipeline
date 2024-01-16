@@ -23,9 +23,9 @@ from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN
     DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
 # Functions
 from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key
-from outsystems.lifetime.lifetime_applications import get_application_version, get_application_versions
+from outsystems.lifetime.lifetime_applications import get_application_version, get_application_versions, get_running_app_version
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
-    send_deployment, start_deployment, continue_deployment, get_running_deployment#, delete_deployment
+    send_deployment, start_deployment, continue_deployment, get_running_deployment  # , delete_deployment
 from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.vars.vars_base import get_configuration_value, load_configuration_file
