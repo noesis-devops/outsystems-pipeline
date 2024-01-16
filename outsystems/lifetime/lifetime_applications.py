@@ -170,26 +170,6 @@ def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, e
 
     return app_data
 
-def get_app_version_info(artifact_dir: str, endpoint: str, auth_token: str, env_key: str, app_version: str, app_version_key: str, **kwargs):
-    # Tuple with (AppName, AppKey): app_tuple[0] = AppName; app_tuple[1] = AppKey
-    app_tuple = _get_application_info(artifact_dir, endpoint, auth_token, **kwargs)
-    app_data = {}
-    app_version_data = get_application_version(artifact_dir, endpoint, auth_token, True, app_version_key, app_name=app_tuple[0])
-    app_data = {
-        "ApplicationName": app_tuple[0],
-        "ApplicationKey": app_tuple[1],
-        "Version": app_version,
-        "VersionKey": app_versionKey
-    }
-    # Since these 2 fields were only introduced in a minor of OS11, we check here if they exist
-    # We can't just use the version
-    if "CreatedOn" in app_version_data:
-        app_data.update({"CreatedOn": app_version_data["CreatedOn"]})
-    if "ChangeLog" in app_version_data:
-        app_data.update({"ChangeLog": app_version_data["ChangeLog"]})
-
-    return app_data
-
 
 def set_application_version(endpoint: str, auth_token: str, env_key: str, app_key: str, change_log: str, app_version: str, mobile_versions: list):
     query = "{}/{}/{}/{}/{}".format(ENVIRONMENTS_ENDPOINT,

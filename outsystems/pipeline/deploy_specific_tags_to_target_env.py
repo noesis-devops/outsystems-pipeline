@@ -23,9 +23,9 @@ from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN
     DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
 # Functions
 from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key
-from outsystems.lifetime.lifetime_applications import get_application_version, get_app_version_info, get_application_versions
+from outsystems.lifetime.lifetime_applications import get_application_version, get_application_versions
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
-    send_deployment, delete_deployment, start_deployment, continue_deployment#, get_running_deployment
+    send_deployment, start_deployment, continue_deployment, get_running_deployment#, delete_deployment
 from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.vars.vars_base import get_configuration_value, load_configuration_file
@@ -65,7 +65,6 @@ def generate_deployment_based_on_manifest(artifact_dir: str, lt_endpoint: str, l
     return app_data_list
 
 
-# Function that will build the info required for a deployment based on the latest versions of the apps in the src environment
 def generate_regular_deployment(artifact_dir: str, lt_endpoint: str, lt_token: str, src_env_key: str, app_list: list):
     app_data_list = []  # will contain the applications to deploy details from LT
     deployment_manifest = []  # will store the deployment plan, that may be used in later stages of the pipeline
@@ -76,7 +75,7 @@ def generate_regular_deployment(artifact_dir: str, lt_endpoint: str, lt_token: s
         app_name = app_name.strip()
 
         # Get the app running version on the source environment. It will only retrieve tagged applications
-        deployed = get_app_version_info(artifact_dir, lt_endpoint, lt_token, src_env_key, app_name=app_name)
+        deployed = get_running_app_version(artifact_dir, lt_endpoint, lt_token, src_env_key, app_name=app_name)
 
         # Add it to the app data list
         app_data_list.append({'Name': app_name, 'Key': deployed["ApplicationKey"], 'Version': deployed["Version"], 'VersionKey': deployed["VersionKey"]})
