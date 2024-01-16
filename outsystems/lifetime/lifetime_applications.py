@@ -174,7 +174,7 @@ def get_app_version_info(artifact_dir: str, endpoint: str, auth_token: str, env_
     # Tuple with (AppName, AppKey): app_tuple[0] = AppName; app_tuple[1] = AppKey
     app_tuple = _get_application_info(artifact_dir, endpoint, auth_token, **kwargs)
     app_data = {}
-    app_version_data = get_application_version(artifact_dir, endpoint, auth_token, True, app_versionKey, app_name=app_tuple[0])
+    app_version_data = get_application_version(artifact_dir, endpoint, auth_token, True, app_version_key, app_name=app_tuple[0])
     app_data = {
         "ApplicationName": app_tuple[0],
         "ApplicationKey": app_tuple[1],

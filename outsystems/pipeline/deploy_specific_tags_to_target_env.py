@@ -320,7 +320,7 @@ if __name__ == "__main__":
     # Parse Destination Environment
     dest_env = args.destination_env
     # Parse App list
-    #_apps = args.app_list
+    # _apps = args.app_list
     # apps = _apps.split(',')
     apps = json.loads(args.app_list)
     # Parse Manifest file if it exists
