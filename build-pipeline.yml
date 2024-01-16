@@ -2,11 +2,21 @@
 # Create and test a Python code on multiple Python versions
 # Uploads the package with a new version to Pypi.org
 
-trigger: none
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - outsystems/*
+    - build/*
+    - setup.py
+  exclude:
+  - /*
 #  batch: true # Batch the changes if there are many commits in a short burst
-#  branches:
-#    include: # Only use the master branch
-#    - master
+  #branches:
+  #  include: # Only use the master branch
+  #  - master
 #  paths:
 #    include: # Only includes the outsystems pipeline code as trigger
 #      - outsystems/*
@@ -70,12 +80,18 @@ jobs:
       architecture: 'x64'
 
   - script: |
-      python build/version_bumper.py --$(ReleaseType)
+      python build/version_bumper.py --minor
       python setup.py sdist
     displayName: 'Build sdist'
+  
+  - name: Store the distribution packages
+    uses: actions/upload-artifact@v3
+    with:
+      name: python-package-distributions
+      path: dist/
 
-  - script: pip install twine
-    displayName: Installing Twine
+  #- script: pip install twine
+  #  displayName: Installing Twine
 
-  - script: twine upload dist/* --disable-progress-bar --skip-existing -u $(TwineUser) -p $(TwinePassword)
-    displayName: Uploading to PyOrg via Twine
+  #- script: twine upload dist/* --disable-progress-bar --skip-existing -u $(TwineUser) -p $(TwinePassword)
+  #  displayName: Uploading to PyOrg via Twine
