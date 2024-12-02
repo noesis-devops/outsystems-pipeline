@@ -6,7 +6,7 @@ pipeline {
             steps {
                 script {
                     def responseData = jiraJqlSearch(
-                        site: 'Jira',
+                        site: 'https://noesis-devops.atlassian.net',
                         jql: 'parent = LFTJIRA-52 and status = "Ready for Prd"'
                     )
                     
