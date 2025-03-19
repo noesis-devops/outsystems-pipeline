@@ -1,5 +1,4 @@
 import requests
-import time
 
 LIFETIME_URL = "https://noesisdemos.outsystemscloud.com/lifetimeapi/rest/v2"
 LIFETIME_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjY0NjI3ZTNmLWEyYzItNGM0My1iNGU0LTdhMDJjZWU2NDc5NyIsInR5cCI6IkpXVCJ9.eyJpYXQiOiIxNzQyMzk0NTE5Iiwic3ViIjoiWkRnMFl6VTJORE10TXpCbFpTMDBNREF3TFRoaFpqa3RNbVJqWTJFMU5qTm1ObU5qIiwianRpIjoiTUFONjNqTkJ6UyIsImV4cCI6MTgwNTQ2NjUxOSwiaXNzIjoibGlmZXRpbWUiLCJhdWQiOiJsaWZldGltZSJ9.ijITQkGjJO5kfzOVs-mgExVTw577MU1V8jctDHWXlgKPzEyH8jduRs3TtDq_pLGhpQ6DT6bXcpHJBu1BrYhxGpxtJKcCvcV22jGHpNghIRfeeXsAu6PNGfU0kWZn2fVcNVX1MxBxDZd5a8uDSyFVERIHNLgW97lHpMjKjWg-8ApionVpwZ0NrCIC913DIlfT1Yjh1QOeTOnidStx67sCQ5xiBqCbImtu-fgVbqaBNoA-TMxIHUs-kyy7akbUZKHCkLnNei8gsoWf-FtkxRsy5ty749j7SsXuz99ItnaQJjcNkOLJ2h_ZFKj04aMydfgVh5IW8OZhEvUE9gRLDBUerw"
@@ -56,7 +55,6 @@ while True:
         
         if status in ["Completed", "Failed"]:
             break
-        time.sleep(10)
     else:
         print(f"Erro ao obter status: {status_response.text}")
         break
