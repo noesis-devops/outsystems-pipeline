@@ -114,7 +114,7 @@ def main():
     issues = fetch_child_issues(args.epic, args.jira_token)
     if issues:
         processed_issues = process_issues(issues)
-        create_deployment_plan(processed_issues, args.outsystems_url, args.lifetime_token, args.source_env, args.target_env)
+        create_deployment_plan(processed_issues, outsystems_url, args.lifetime_token, args.source_env, args.target_env)
     else:
         print("No issues retrieved from Jira.")
 
