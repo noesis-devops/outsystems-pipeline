@@ -1,9 +1,12 @@
 import argparse
 import requests
+import json
+import subprocess
 
 # Constants
 JIRA_URL = "https://noesis-devops.atlassian.net"
 JIRA_USER = "rodrigo.r.alcaide@noesis.pt"
+outsystems_url = "https://noesisdemos.outsystemscloud.com"
 
 def get_arguments():
     """
@@ -11,12 +14,10 @@ def get_arguments():
     Returns:
         args (Namespace): Parsed arguments.
     """
-    parser = argparse.ArgumentParser(description='Fetch child issues from a Jira Epic.')
+    parser = argparse.ArgumentParser(description='Fetch child issues from a Jira Epic and deploy applications.')
     parser.add_argument('--epic', required=True, help='ID of the Jira Epic')
     parser.add_argument('--jira_token', required=True, help='Jira API Token')
-    parser.add_argument('--lifetime_token', required=True, help='Lifetime API Token')
-    parser.add_argument('--outsystems-url', required=True, help='OutSystems environment URL')
-    parser.add_argument('--outsystems-token', required=True, help='OutSystems API Token')
+    parser.add_argument('--lifetime_token', required=True, help='OutSystems API Token')
     parser.add_argument('--source-env', required=True, help='Source environment (e.g. Development)')
     parser.add_argument('--target-env', required=True, help='Target environment (e.g. Production)')
     return parser.parse_args()
@@ -35,7 +36,7 @@ def fetch_child_issues(epic_id, token):
     jql_query = f"parent={epic_id}"
     search_url = f"{JIRA_URL}/rest/api/2/search?jql={jql_query}"
     headers = {"Accept": "application/json"}
-    auth = (JIRA_USER, token)
+    auth = (JIRA_USER, lifetime_token)
 
     try:
         response = requests.get(search_url, headers=headers, auth=auth)
@@ -59,41 +60,61 @@ def process_issues(issues):
     processed_issues = []
     for issue in issues:
         issue_data = {
-            "App": issue['fields'].get('description', "No description available for this issue."),
-            "Version": issue['fields'].get('customfield_10055', "No version available for this issue.")
+            "app_name": issue['fields'].get('description', "No description available for this issue."),
+            "app_version": issue['fields'].get('customfield_10055', "No version available for this issue.")
         }
         processed_issues.append(issue_data)
     return processed_issues
 
-def display_issues(processed_issues):
+def create_deployment_plan(processed_issues, outsystems_url, lifetime_token, source_env, target_env):
     """
-    Display processed issues data in a readable format.
+    Generate a deployment plan using the applications extracted from Jira.
 
     Args:
         processed_issues (list): List of processed issues.
+        outsystems_url (str): OutSystems environment URL.
+        lifetime_token (str): OutSystems API Token.
+        source_env (str): Source environment.
+        target_env (str): Target environment.
     """
     if not processed_issues:
-        print("No child issues found for this Epic.")
+        print("No applications to deploy.")
         return
+    
+    # Convert the processed issues into a JSON string
+    applications_json = json.dumps(processed_issues)
 
-    print("Processed Child Issues:")
-    for issue in processed_issues:
-        print(f"- App: {issue['App']}, Version: {issue['Version']}")
+    # Build the command to execute
+    command = [
+        'python', 'outsystems/pipeline/deploy_specific_tags_to_target_env.py',
+        '-u', outsystems_url,
+        '-t', lifetime_token,
+        '-s', source_env,
+        '-d', target_env,
+        '-l', applications_json
+    ]
+    
+    # Execute the deployment command
+    try:
+        subprocess.run(command, check=True)
+        print(f"Deployment plan created successfully for {len(processed_issues)} applications.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error during deployment: {e}")
 
 def main():
     """
     Main function to handle the workflow:
     1. Parse arguments.
     2. Fetch child issues from Jira.
-    3. Process and display issues.
+    3. Process issues and create deployment plan.
     """
     args = get_arguments()
     print(f"Fetching child issues for Epic ID: {args.epic}")
 
-    issues = fetch_child_issues(args.epic, args.jira_token)
+    issues = fetch_child_issues(args.epic, args.lifetime_token)
     if issues:
         processed_issues = process_issues(issues)
-        display_issues(processed_issues)
+        create_deployment_plan(processed_issues, args.outsystems_url, args.lifetime_token, args.source_env, args.target_env)
     else:
         print("No issues retrieved from Jira.")
 
