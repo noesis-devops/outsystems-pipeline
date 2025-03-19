@@ -86,7 +86,7 @@ def main():
     args = get_arguments()
     print(f"Fetching child issues for Epic ID: {args.epic}")
 
-    issues = fetch_child_issues(args.epic, args.token)
+    issues = fetch_child_issues(args.epic, args.jira_token)
     if issues:
         processed_issues = process_issues(issues)
         display_issues(processed_issues)
