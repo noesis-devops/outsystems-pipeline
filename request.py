@@ -22,7 +22,7 @@ def get_arguments():
     parser.add_argument('--target_env', required=True, help='Target environment (e.g. Production)')
     return parser.parse_args()
 
-def fetch_child_issues(epic_id, token):
+def fetch_child_issues(epic_id, lifetime_token):
     """
     Fetch child issues of a given Jira Epic using the Jira API.
 
