@@ -22,7 +22,7 @@ def get_arguments():
     parser.add_argument('--target_env', required=True, help='Target environment (e.g. Production)')
     return parser.parse_args()
 
-def fetch_child_issues(epic_id, lifetime_token):
+def fetch_child_issues(epic_id, jira_token):
     """
     Fetch child issues of a given Jira Epic using the Jira API.
 
@@ -36,7 +36,7 @@ def fetch_child_issues(epic_id, lifetime_token):
     jql_query = f"parent={epic_id}"
     search_url = f"{JIRA_URL}/rest/api/2/search?jql={jql_query}"
     headers = {"Accept": "application/json"}
-    auth = (JIRA_USER, lifetime_token)
+    auth = (JIRA_USER, jira_token)
 
     try:
         response = requests.get(search_url, headers=headers, auth=auth)
@@ -111,7 +111,7 @@ def main():
     args = get_arguments()
     print(f"Fetching child issues for Epic ID: {args.epic}")
 
-    issues = fetch_child_issues(args.epic, args.lifetime_token)
+    issues = fetch_child_issues(args.epic, args.jira_token)
     if issues:
         processed_issues = process_issues(issues)
         create_deployment_plan(processed_issues, args.outsystems_url, args.lifetime_token, args.source_env, args.target_env)
