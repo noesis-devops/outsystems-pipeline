@@ -18,8 +18,8 @@ def get_arguments():
     parser.add_argument('--epic', required=True, help='ID of the Jira Epic')
     parser.add_argument('--jira_token', required=True, help='Jira API Token')
     parser.add_argument('--lifetime_token', required=True, help='OutSystems API Token')
-    parser.add_argument('--source-env', required=True, help='Source environment (e.g. Development)')
-    parser.add_argument('--target-env', required=True, help='Target environment (e.g. Production)')
+    parser.add_argument('--source_env', required=True, help='Source environment (e.g. Development)')
+    parser.add_argument('--target_env', required=True, help='Target environment (e.g. Production)')
     return parser.parse_args()
 
 def fetch_child_issues(epic_id, token):
