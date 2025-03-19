@@ -13,7 +13,8 @@ def get_arguments():
     """
     parser = argparse.ArgumentParser(description='Fetch child issues from a Jira Epic.')
     parser.add_argument('--epic', required=True, help='ID of the Jira Epic')
-    parser.add_argument('--token', required=True, help='Jira API Token')
+    parser.add_argument('--jira_token', required=True, help='Jira API Token')
+    parser.add_argument('--lifetime_token', required=True, help='Lifetime API Token')
     return parser.parse_args()
 
 def fetch_child_issues(epic_id, token):
