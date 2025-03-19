@@ -91,7 +91,8 @@ def create_deployment_plan(processed_issues, outsystems_url, lifetime_token, sou
         '-t', lifetime_token,
         '-s', source_env,
         '-d', target_env,
-        '-l', applications_json
+        '-l', applications_json,
+        '--force'
     ]
     
     # Execute the deployment command
