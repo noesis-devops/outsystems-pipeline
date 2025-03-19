@@ -10,6 +10,9 @@ def main():
     JIRA_URL = "https://noesis-devops.atlassian.net"
     JIRA_USER = "rodrigo.r.alcaide@noesis.pt"
 
+    print(args.epic)
+    print(args.token)
+    
     # Child issues request
     jql_query = f"parent={args.epic}"
     search_url = f"{JIRA_URL}/rest/api/2/search?jql={jql_query}"
