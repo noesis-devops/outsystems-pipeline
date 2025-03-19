@@ -40,7 +40,7 @@ start_response = requests.post(f"{LIFETIME_URL}/deployments/{deployment_plan_key
 if start_response.status_code == 200:
     print("Deployment iniciado com sucesso!")
 else:
-    print(f"Erro ao iniciar deployment: {start_response.text}")
+    print(start_response.text)
     exit(1)
 
 # Status do Deployment
