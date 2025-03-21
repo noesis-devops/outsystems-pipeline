@@ -91,7 +91,7 @@ def create_deployment_plan(processed_issues, outsystems_url, lifetime_token, sou
         '-t', lifetime_token,
         '-s', source_env,
         '-d', target_env,
-        '-m', applications_json
+        '-m', '{"environment_definitions":[{"environment_label":"Development","applications":[{"app_name":"JF BDD Client Test","app_version":"0.1"}]},{"environment_label":"Production","applications":[]}]}'
     ]
     
     # Execute the deployment command
