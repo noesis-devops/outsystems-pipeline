@@ -86,7 +86,7 @@ def create_deployment_plan(processed_issues, outsystems_url, lifetime_token, sou
 
     # Build the command to execute
     command = [
-        'python', 'outsystems/pipeline/deploy_specific_tags_to_target_env.py',
+        'python', 'outsystems/pipeline/deploy_latest_tags_to_target_env.py',
         '-u', outsystems_url,
         '-t', lifetime_token,
         '-s', source_env,
