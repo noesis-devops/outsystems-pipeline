@@ -86,12 +86,12 @@ def create_deployment_plan(processed_issues, outsystems_url, lifetime_token, sou
 
     # Build the command to execute
     command = [
-        'python', 'outsystems/pipeline/deploy_tags_to_target_env_with_manifest.py',
+        'python', 'outsystems/pipeline/deploy_latest_tags_to_target_env.py',
         '-u', outsystems_url,
         '-t', lifetime_token,
         '-s', source_env,
         '-d', target_env,
-        '-m', '{"environment_definitions":[{"environment_label":"Development","applications":[{"app_name":"JF BDD Client Test","app_version":"0.1"}]},{"environment_label":"Production","applications":[]}]}'
+        '-l', "JF BDD Client Test"
     ]
     
     # Execute the deployment command
