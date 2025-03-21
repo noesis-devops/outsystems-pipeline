@@ -211,17 +211,16 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     dep_plan_key = send_deployment(artifact_dir, lt_endpoint, lt_token, lt_api_version, to_deploy_app_keys, dep_note, source_env, dest_env)
     print("Deployment plan {} created successfully.".format(dep_plan_key), flush=True)
 
-    
     # Check if created deployment plan has conflicts
-    #dep_details = get_deployment_info(artifact_dir, lt_endpoint, lt_token, dep_plan_key)
-    #if len(dep_details["ApplicationConflicts"]) > 0:
-    #    store_data(artifact_dir, CONFLICTS_FILE, dep_details["ApplicationConflicts"])
-    #    print("Deployment plan {} has conflicts and will be aborted. Check {} artifact for more details.".format(dep_plan_key, CONFLICTS_FILE), flush=True)
-    #    # Abort previously created deployment plan to target environment
-    #    # delete_deployment(lt_endpoint, lt_token, dep_plan_key)
-    #    # print("Deployment plan {} was deleted successfully.".format(dep_plan_key), flush=True)
-    #   sys.exit(1)
-    
+    dep_details = get_deployment_info(artifact_dir, lt_endpoint, lt_token, dep_plan_key)
+    if len(dep_details["ApplicationConflicts"]) > 0:
+        store_data(artifact_dir, CONFLICTS_FILE, dep_details["ApplicationConflicts"])
+        print("Deployment plan {} has conflicts and will be aborted. Check {} artifact for more details.".format(dep_plan_key, CONFLICTS_FILE), flush=True)
+        # Abort previously created deployment plan to target environment
+        # delete_deployment(lt_endpoint, lt_token, dep_plan_key)
+        # print("Deployment plan {} was deleted successfully.".format(dep_plan_key), flush=True)
+        sys.exit(1)
+
     # Check if outdated consumer applications (outside of deployment plan) should be redeployed and start the deployment plan execution
     if lt_api_version == 1:  # LT for OS version < 11
         start_deployment(lt_endpoint, lt_token, dep_plan_key)
