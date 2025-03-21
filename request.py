@@ -55,17 +55,16 @@ def process_issues(issues):
         issues (list): List of issues from Jira.
 
     Returns:
-        list: List of arrays containing processed issue data.
+        list: List of dictionaries containing processed issue data.
     """
     processed_issues = []
     for issue in issues:
-        issue_data = [
-            issue['fields'].get('description', "No description available for this issue.")
-            # issue['fields'].get('customfield_10055', "No version available for this issue.")
-        ]
+        issue_data = {
+            "app_name": issue['fields'].get('description', "No description available for this issue."),
+            "app_version": issue['fields'].get('customfield_10055', "No version available for this issue.")
+        }
         processed_issues.append(issue_data)
     return processed_issues
-
 
 def create_deployment_plan(processed_issues, outsystems_url, lifetime_token, source_env, target_env):
     """
@@ -87,12 +86,12 @@ def create_deployment_plan(processed_issues, outsystems_url, lifetime_token, sou
 
     # Build the command to execute
     command = [
-        'python', 'outsystems/pipeline/deploy_latest_tags_to_target_env.py',
+        'python', 'outsystems/pipeline/deploy_specific_tags_to_target_env.py',
         '-u', outsystems_url,
         '-t', lifetime_token,
         '-s', source_env,
         '-d', target_env,
-        '-l', "LFTJIRA-52"
+        '-l', applications_json
     ]
     
     # Execute the deployment command
