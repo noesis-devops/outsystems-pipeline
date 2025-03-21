@@ -91,7 +91,7 @@ def create_deployment_plan(processed_issues, outsystems_url, lifetime_token, sou
         '-t', lifetime_token,
         '-s', source_env,
         '-d', target_env,
-        '-l', "JF BDD Client Test"
+        '-l', "rodrigo-devops3"
     ]
     
     # Execute the deployment command
