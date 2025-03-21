@@ -60,8 +60,8 @@ def process_issues(issues):
     processed_issues = []
     for issue in issues:
         issue_data = {
-            "app_name": issue['fields'].get('description', "No description available for this issue."),
-            "app_version": issue['fields'].get('customfield_10055', "No version available for this issue.")
+            "app_name": issue['fields'].get('description', "No description available for this issue.")#,
+            # "app_version": issue['fields'].get('customfield_10055', "No version available for this issue.")
         }
         processed_issues.append(issue_data)
     return processed_issues
