@@ -66,85 +66,6 @@ def process_issues(issues):
         processed_issues.append(issue_data)
     return processed_issues
 
-def get_latest_version(app_name, outsystems_url, lifetime_token):
-    """
-    Get the latest version of an application from OutSystems.
-
-    Args:
-        app_name (str): Name of the application.
-        outsystems_url (str): OutSystems environment URL.
-        lifetime_token (str): OutSystems API Token.
-
-    Returns:
-        str: Latest version or None if not found.
-    """
-    headers = {
-        "Authorization": f"Bearer {lifetime_token}",
-        "Accept": "application/json"
-    }
-
-    # Endpoint correto para buscar versões pode precisar de ajustes
-    url = f"{outsystems_url}/lifetimeapi/v2/Applications?filter={app_name}"
-
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        data = response.json()
-
-        if not data or "Applications" not in data:
-            print(f"No versions found for {app_name}")
-            return None
-
-        versions = [app["Version"] for app in data["Applications"] if app["Name"] == app_name]
-        latest_version = sorted(versions, reverse=True)[0] if versions else None
-
-        return latest_version
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching latest version for {app_name}: {e}")
-        return None
-
-def tag_new_version(app_name, outsystems_url, lifetime_token):
-    """
-    Create and tag a new version of an application in OutSystems.
-
-    Args:
-        app_name (str): Name of the application.
-        outsystems_url (str): OutSystems environment URL.
-        lifetime_token (str): OutSystems API Token.
-
-    Returns:
-        str: New version tagged or None if failed.
-    """
-    latest_version = get_latest_version(app_name, outsystems_url, lifetime_token)
-
-    if not latest_version:
-        print(f"Cannot find latest version for {app_name}. Aborting tag creation.")
-        return None
-
-    # Incrementar a versão (de 2.0 para 3.0, por exemplo)
-    new_version = str(int(latest_version.split(".")[0]) + 1) + ".0"
-
-    tag_payload = {
-        "ApplicationName": app_name,
-        "Version": new_version
-    }
-
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {lifetime_token}"
-    }
-
-    tag_url = f"{outsystems_url}/lifetimeapi/v2/Applications/Tag"
-
-    try:
-        response = requests.post(tag_url, json=tag_payload, headers=headers)
-        response.raise_for_status()
-        print(f"Successfully tagged {app_name} with version {new_version}.")
-        return new_version
-    except requests.exceptions.RequestException as e:
-        print(f"Error tagging {app_name}: {e}")
-        return None
-
 def create_deployment_plan(processed_issues, outsystems_url, lifetime_token, source_env, target_env):
     """
     Generate a deployment plan using the applications extracted from Jira.
@@ -193,10 +114,6 @@ def main():
     issues = fetch_child_issues(args.epic, args.jira_token)
     if issues:
         processed_issues = process_issues(issues)
-        for issue in processed_issues:
-            new_version = tag_new_version(issue["app_name"], outsystems_url, args.lifetime_token)
-            if new_version:
-                issue["app_version"] = new_version
         create_deployment_plan(processed_issues, outsystems_url, args.lifetime_token, args.source_env, args.target_env)
     else:
         print("No issues retrieved from Jira.")
