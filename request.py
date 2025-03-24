@@ -65,6 +65,42 @@ def process_issues(issues):
         }
         processed_issues.append(issue_data)
     return processed_issues
+    
+def tag_versions(processed_issues, outsystems_url, lifetime_token):
+    """
+    Tag the versions of applications before deployment.
+
+    Args:
+        processed_issues (list): List of processed issues with app names and versions.
+        outsystems_url (str): OutSystems environment URL.
+        lifetime_token (str): OutSystems API Token.
+    """
+    for issue in processed_issues:
+        app_name = issue["app_name"]
+        app_version = issue["app_version"]
+
+        if not app_name or not app_version:
+            print(f"Skipping tagging for {app_name} due to missing information.")
+            continue
+
+        tag_payload = {
+            "ApplicationName": app_name,
+            "Version": app_version
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {lifetime_token}"
+        }
+
+        tag_url = f"{outsystems_url}/lifetimeapi/v2/Applications/Tag"
+
+        try:
+            response = requests.post(tag_url, json=tag_payload, headers=headers)
+            response.raise_for_status()
+            print(f"Successfully tagged {app_name} with version {app_version}.")
+        except requests.exceptions.RequestException as e:
+            print(f"Error tagging {app_name}: {e}")
 
 def create_deployment_plan(processed_issues, outsystems_url, lifetime_token, source_env, target_env):
     """
@@ -114,6 +150,7 @@ def main():
     issues = fetch_child_issues(args.epic, args.jira_token)
     if issues:
         processed_issues = process_issues(issues)
+        tag_versions(processed_issues, outsystems_url, args.lifetime_token)
         create_deployment_plan(processed_issues, outsystems_url, args.lifetime_token, args.source_env, args.target_env)
     else:
         print("No issues retrieved from Jira.")
