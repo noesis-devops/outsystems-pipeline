@@ -64,7 +64,7 @@ def create_tag_for_applications(outsystems_url, lifetime_token, source_env, targ
 
     # Prepare the command to execute the script for tags
     command = [
-        'python', 'path/to/tag/script.py',  # Substitua pelo caminho real do script das tags
+        'python', 'outsystems/pipeline/tag_modified_apps.py',
         '-u', outsystems_url,
         '-t', lifetime_token,
         '-s', source_env,
@@ -73,10 +73,8 @@ def create_tag_for_applications(outsystems_url, lifetime_token, source_env, targ
     ]
 
     if app_list:
-        # Se for fornecida uma lista de aplicativos, passá-los como argumento
         command.extend(['-a', ','.join(app_list)])
     elif manifest_file:
-        # Se for fornecido um arquivo de manifesto, passá-lo como argumento
         command.extend(['-f', manifest_file])
 
     try:
