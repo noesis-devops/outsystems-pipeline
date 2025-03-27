@@ -20,6 +20,9 @@ def get_arguments():
     parser.add_argument('--lifetime_token', required=True, help='OutSystems API Token')
     parser.add_argument('--source_env', required=True, help='Source environment (e.g. Development)')
     parser.add_argument('--target_env', required=True, help='Target environment (e.g. Production)')
+    parser.add_argument('--outsystems_url', required=True, help='outsystems url')
+    parser.add_argument('--jira_user', required=True, help='Jira user')
+    parser.add_argument('--jira_url', required=True, help='Jira url')
     return parser.parse_args()
 
 def fetch_child_issues(epic_id, jira_token):
@@ -34,9 +37,9 @@ def fetch_child_issues(epic_id, jira_token):
         list: List of issues retrieved from Jira.
     """
     jql_query = f"parent={epic_id}"
-    search_url = f"{JIRA_URL}/rest/api/2/search?jql={jql_query}"
+    search_url = f"{args.jira_url}/rest/api/2/search?jql={jql_query}"
     headers = {"Accept": "application/json"}
-    auth = (JIRA_USER, jira_token)
+    auth = (args.jira_user, jira_token)
 
     try:
         response = requests.get(search_url, headers=headers, auth=auth)
@@ -114,7 +117,7 @@ def main():
     issues = fetch_child_issues(args.epic, args.jira_token)
     if issues:
         processed_issues = process_issues(issues)
-        create_deployment_plan(processed_issues, outsystems_url, args.lifetime_token, args.source_env, args.target_env)
+        create_deployment_plan(processed_issues, args.outsystems_url, args.lifetime_token, args.source_env, args.target_env)
     else:
         print("No issues retrieved from Jira.")
 
