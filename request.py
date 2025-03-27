@@ -67,7 +67,6 @@ def create_tag_for_applications(outsystems_url, lifetime_token, source_env, targ
         'python', 'outsystems/pipeline/tag_modified_apps.py',
         '-u', outsystems_url,
         '-t', lifetime_token,
-        '-s', source_env,
         '-d', target_env,
         '-l', log_msg
     ]
