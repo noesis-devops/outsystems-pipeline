@@ -65,51 +65,51 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     trigger_in_use = bool(trigger_manifest)
 
     for app in app_list:
-    app_name = app["ApplicationName"] if trigger_in_use else app
-    # Gets application specific details
-    app_detail = list(filter(lambda x: x["Name"] == app_name, all_apps))
-
-    if len(app_detail):
-        # Checks if application is modified in target env
-        app_env_detail = list(filter(lambda x: x["EnvironmentKey"] == env_key and x["IsModified"], app_detail[0]["AppStatusInEnvs"]))
-
-        if len(app_env_detail):
-            current_tag = get_running_app_version(artifact_dir, lt_endpoint, lt_token, env_key, app_name=app_name)
-            generated_tag = generate_new_version_number(current_tag["Version"])
-
-            # List of the last application tags
-            tag_history_list = [d["Version"] for d in get_application_versions(artifact_dir, lt_endpoint, lt_token, get_configuration_value("MAX_VERSIONS_TO_RETURN", MAX_VERSIONS_TO_RETURN), app_name=app_name)]
-
-            # Adiciona logs para debug
-            print(f"Current version in environment: {current_tag['Version']}")
-            print(f"Generated new tag: {generated_tag}")
-            print(f"Existing tags: {tag_history_list}")
-
-            # Finds next available tag number
-            retries = 0
-            while retries < get_configuration_value("TAG_APP_MAX_RETRIES", TAG_APP_MAX_RETRIES):
-                if generated_tag in tag_history_list:
-                    print(f"Tag {generated_tag} already exists. Generating a new one...")
-                    generated_tag = generate_new_version_number(generated_tag)
-                else:
-                    # Checks if app is mobile and gets mobile info
-                    app_mobile_detail = list(filter(lambda x: x["IsModified"], app_env_detail[0]["MobileAppsStatus"]))
-
-                    # Will contain the List of mobile versions to tag
-                    native_shell_versions = []
-
-                    # Generate new version number for each native shell
-                    if app_mobile_detail:
-                        for native_shell in app_mobile_detail:
-                            native_shell_versions.append({"NativePlatform": native_shell["NativePlatform"], "VersionNumber": generate_new_version_number(native_shell["VersionNumber"]), "VersionDescription": log_msg})
-
-                    set_application_version(lt_endpoint, lt_token, env_key, current_tag["ApplicationKey"], log_msg, generated_tag, native_shell_versions)
-                    print(f"Application '{current_tag['ApplicationName']}' successfully tagged to version {generated_tag} on environment '{dest_env}'", flush=True)
-                    break
-
-                retries += 1
-                if retries == get_configuration_value("TAG_APP_MAX_RETRIES", TAG_APP_MAX_RETRIES):
-                    print(f"Could not find available tag for Application '{current_tag['ApplicationName']}' ", flush=True)
+        app_name = app["ApplicationName"] if trigger_in_use else app
+        # Gets application specific details
+        app_detail = list(filter(lambda x: x["Name"] == app_name, all_apps))
+    
+        if len(app_detail):
+            # Checks if application is modified in target env
+            app_env_detail = list(filter(lambda x: x["EnvironmentKey"] == env_key and x["IsModified"], app_detail[0]["AppStatusInEnvs"]))
+    
+            if len(app_env_detail):
+                current_tag = get_running_app_version(artifact_dir, lt_endpoint, lt_token, env_key, app_name=app_name)
+                generated_tag = generate_new_version_number(current_tag["Version"])
+    
+                # List of the last application tags
+                tag_history_list = [d["Version"] for d in get_application_versions(artifact_dir, lt_endpoint, lt_token, get_configuration_value("MAX_VERSIONS_TO_RETURN", MAX_VERSIONS_TO_RETURN), app_name=app_name)]
+    
+                # Adiciona logs para debug
+                print(f"Current version in environment: {current_tag['Version']}")
+                print(f"Generated new tag: {generated_tag}")
+                print(f"Existing tags: {tag_history_list}")
+    
+                # Finds next available tag number
+                retries = 0
+                while retries < get_configuration_value("TAG_APP_MAX_RETRIES", TAG_APP_MAX_RETRIES):
+                    if generated_tag in tag_history_list:
+                        print(f"Tag {generated_tag} already exists. Generating a new one...")
+                        generated_tag = generate_new_version_number(generated_tag)
+                    else:
+                        # Checks if app is mobile and gets mobile info
+                        app_mobile_detail = list(filter(lambda x: x["IsModified"], app_env_detail[0]["MobileAppsStatus"]))
+    
+                        # Will contain the List of mobile versions to tag
+                        native_shell_versions = []
+    
+                        # Generate new version number for each native shell
+                        if app_mobile_detail:
+                            for native_shell in app_mobile_detail:
+                                native_shell_versions.append({"NativePlatform": native_shell["NativePlatform"], "VersionNumber": generate_new_version_number(native_shell["VersionNumber"]), "VersionDescription": log_msg})
+    
+                        set_application_version(lt_endpoint, lt_token, env_key, current_tag["ApplicationKey"], log_msg, generated_tag, native_shell_versions)
+                        print(f"Application '{current_tag['ApplicationName']}' successfully tagged to version {generated_tag} on environment '{dest_env}'", flush=True)
+                        break
+    
+                    retries += 1
+                    if retries == get_configuration_value("TAG_APP_MAX_RETRIES", TAG_APP_MAX_RETRIES):
+                        print(f"Could not find available tag for Application '{current_tag['ApplicationName']}' ", flush=True)
 
 # End of main()
 
