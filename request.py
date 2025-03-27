@@ -44,6 +44,46 @@ def fetch_child_issues(epic_id, jira_token, jira_url, jira_user):
     except requests.exceptions.RequestException as e:
         print(f"Error connecting to Jira: {e}")
         return []
+        
+def create_tag_for_applications(outsystems_url, lifetime_token, source_env, target_env, app_list=None, manifest_file=None, log_msg="Version created automatically using outsystems-pipeline package."):
+    """
+    Calls the script to create tags for the applications using the provided parameters.
+
+    Args:
+        outsystems_url (str): URL for the OutSystems environment.
+        lifetime_token (str): API token for the LifeTime API.
+        source_env (str): Source environment (e.g., Development).
+        target_env (str): Target environment (e.g., Production).
+        app_list (list, optional): List of applications to tag.
+        manifest_file (str, optional): Path to the manifest file.
+        log_msg (str, optional): Log message for the tags.
+    """
+    if not app_list and not manifest_file:
+        print("Either app_list or manifest_file must be provided.")
+        return
+
+    # Prepare the command to execute the script for tags
+    command = [
+        'python', 'path/to/tag/script.py',  # Substitua pelo caminho real do script das tags
+        '-u', outsystems_url,
+        '-t', lifetime_token,
+        '-s', source_env,
+        '-d', target_env,
+        '-l', log_msg
+    ]
+
+    if app_list:
+        # Se for fornecida uma lista de aplicativos, passá-los como argumento
+        command.extend(['-a', ','.join(app_list)])
+    elif manifest_file:
+        # Se for fornecido um arquivo de manifesto, passá-lo como argumento
+        command.extend(['-f', manifest_file])
+
+    try:
+        subprocess.run(command, check=True)
+        print(f"Tags for applications in environment '{target_env}' have been created successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error creating tags: {e}")
 
 def process_issues(issues):
     """
@@ -112,6 +152,14 @@ def main():
     issues = fetch_child_issues(args.epic, args.jira_token, args.jira_url, args.jira_user)
     if issues:
         processed_issues = process_issues(issues)
+        create_tag_for_applications(
+            outsystems_url=args.outsystems_url,
+            lifetime_token=args.lifetime_token,
+            source_env=args.source_env,
+            target_env=args.target_env,
+            app_list=[issue['app_name'] for issue in processed_issues],  # Usando os nomes dos aplicativos processados
+            log_msg="Version created automatically before deployment."
+        )
         create_deployment_plan(processed_issues, args.outsystems_url, args.lifetime_token, args.source_env, args.target_env)
     else:
         print("No issues retrieved from Jira.")
