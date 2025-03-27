@@ -61,20 +61,21 @@ def create_tag_for_applications(outsystems_url, lifetime_token, source_env, targ
     if not app_list and not manifest_file:
         print("Either app_list or manifest_file must be provided.")
         return
-    # app_list = ["rodrigo-devops5"]
+    app_list = ["rodrigo-devops5"]
     # Prepare the command to execute the script for tags
     command = [
         'python', 'outsystems/pipeline/tag_modified_apps.py',
         '-u', outsystems_url,
         '-t', lifetime_token,
         '-d', source_env,
-        '-l', log_msg
+        '-l', log_msg, 
+        '-a', app_list
     ]
 
-    if app_list:
-        command.extend(['-a', ','.join(app_list)])
-    elif manifest_file:
-        command.extend(['-f', manifest_file])
+    #if app_list:
+    #    command.extend(['-a', ','.join(app_list)])
+    #elif manifest_file:
+    #    command.extend(['-f', manifest_file])
 
     try:
         subprocess.run(command, check=True)
