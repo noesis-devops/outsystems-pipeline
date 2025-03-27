@@ -25,7 +25,7 @@ def get_arguments():
     parser.add_argument('--jira_url', required=True, help='Jira url')
     return parser.parse_args()
 
-def fetch_child_issues(epic_id, jira_token, jira_url):
+def fetch_child_issues(epic_id, jira_token, jira_url, jira_user):
     """
     Fetch child issues of a given Jira Epic using the Jira API.
 
@@ -39,7 +39,7 @@ def fetch_child_issues(epic_id, jira_token, jira_url):
     jql_query = f"parent={epic_id}"
     search_url = f"{jira_url}/rest/api/2/search?jql={jql_query}"
     headers = {"Accept": "application/json"}
-    auth = (args.jira_user, jira_token)
+    auth = (jira_user, jira_token)
 
     try:
         response = requests.get(search_url, headers=headers, auth=auth)
@@ -114,7 +114,7 @@ def main():
     args = get_arguments()
     print(f"Fetching child issues for Epic ID: {args.epic}")
 
-    issues = fetch_child_issues(args.epic, args.jira_token, args.jira_url)
+    issues = fetch_child_issues(args.epic, args.jira_token, args.jira_url, args.jira_user)
     if issues:
         processed_issues = process_issues(issues)
         create_deployment_plan(processed_issues, args.outsystems_url, args.lifetime_token, args.source_env, args.target_env)
