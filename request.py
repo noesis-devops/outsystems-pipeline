@@ -69,7 +69,7 @@ def create_tag_for_applications(outsystems_url, lifetime_token, source_env, targ
         '-t', lifetime_token,
         '-d', source_env,
         '-l', log_msg, 
-        '-a', app_list
+        '-a', 'rodrigo-devops5'
     ]
 
     #if app_list:
