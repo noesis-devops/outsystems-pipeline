@@ -3,11 +3,6 @@ import requests
 import json
 import subprocess
 
-# Constants
-JIRA_URL = "https://noesis-devops.atlassian.net"
-JIRA_USER = "rodrigo.r.alcaide@noesis.pt"
-outsystems_url = "https://noesisdemos.outsystemscloud.com"
-
 def get_arguments():
     """
     Parse command-line arguments for Epic ID and Jira API Token.
