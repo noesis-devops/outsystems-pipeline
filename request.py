@@ -45,7 +45,7 @@ def fetch_child_issues(epic_id, jira_token, jira_url, jira_user):
         print(f"Error connecting to Jira: {e}")
         return []
         
-def create_tag_for_applications(outsystems_url, lifetime_token, source_env, target_env, app_list=None, manifest_file=None, log_msg="Version created automatically using outsystems-pipeline package."):
+def create_tag_for_applications(outsystems_url, lifetime_token, source_env, target_env, app_list, manifest_file=None, log_msg="Version created automatically using outsystems-pipeline package."):
     """
     Calls the script to create tags for the applications using the provided parameters.
 
@@ -61,7 +61,7 @@ def create_tag_for_applications(outsystems_url, lifetime_token, source_env, targ
     if not app_list and not manifest_file:
         print("Either app_list or manifest_file must be provided.")
         return
-
+    # app_list = ["rodrigo-devops5"]
     # Prepare the command to execute the script for tags
     command = [
         'python', 'outsystems/pipeline/tag_modified_apps.py',
