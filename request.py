@@ -78,7 +78,7 @@ def create_tag_for_applications(outsystems_url, lifetime_token, source_env, targ
 
     try:
         subprocess.run(command, check=True)
-        print(f"Tags for applications in environment '{target_env}' have been created successfully.")
+        print(f"Tags for applications in environment '{source_env}' have been created successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error creating tags: {e}")
 
